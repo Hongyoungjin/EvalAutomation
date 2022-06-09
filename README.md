@@ -36,7 +36,7 @@
 
 ``` bash
 git clone https://github.com/Hongyoungjin/EvalAutomation.git
-pip install .
+pip3 install .
 ```
 git 설치는 [여기](https://git-scm.com/book/ko/v2/%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0-Git-%EC%84%A4%EC%B9%98)를 통해 설치하시고, git이 없어도 해당 레포를 zip 형식으로 다운로드 받으실 수 있습니다. 
 
