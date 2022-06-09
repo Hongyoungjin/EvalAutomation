@@ -20,11 +20,10 @@
 ### 패키지 설치
 파이썬 코드에서 요구하는 패키지들을 미리 설치합시다.
 
-''' 
+``` bash
 git clone https://github.com/Hongyoungjin/EvalAutomation.
 pip install .
- 
-'''
+```
 
 ### 필요한 파일 만들기
 
@@ -61,10 +60,9 @@ pip install .
 분반에 ***총 17 팀***이 있으며,
 각 팀에 ***최대 6명의 팀원***이 있는 경우 아래와 같이 입력해서 실행합니다. 
 
-'''
+```bash
 python3 evals.py --session f --team 17 --member 6 
-
-'''
+```
 
 ## Troubleshooting
 
