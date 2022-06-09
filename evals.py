@@ -4,7 +4,7 @@ import numpy as  np
 import string
 import glob
 import random
-from .functions import args , remove_vulnerabilities
+from functions import args , remove_vulnerabilities
    
 
 
@@ -71,14 +71,11 @@ team_dist = np.array(team_dist)
 
 for file_name in files_peer:
     print(file_name)
-    df = pd.read_excel(file_name, index_col=0, usecols=mate_range, nrows=6, skiprows=6, header=None)
+    df = pd.read_excel(file_name, usecols=mate_range, nrows=6, skiprows=6, header=None)
     df = remove_vulnerabilities(df, "individual")
     df = df.to_numpy()
     mates = np.array([r for r in df[:,0] if type(r) == str])
     mate_no_tmp = len(mates)
-    
-
-
 # 각 사람마다 값 더하기
     row = 0
     team_num = 0 # 현재 학생이 속한 조 번호
