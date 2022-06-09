@@ -1,3 +1,4 @@
+import argparse
 import pandas as pd
 import numpy as  np
 import string
@@ -24,31 +25,46 @@ def remove_vulnerabilities(dataframe, arg):
 
     return dataframe
    
+def args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-s", "--session", type=str, default="m", help="중간 평가면 m, 발표 평가면 f")
+    ap.add_argument("-t", "--team", type=int, default=17, help="분반에 총 몇 조까지 있는지 자연수로 입력")
+    ap.add_argument("-m", "--member", type=int, default=6, help="한 팀에 최대 몇 명까지 있는지 자연수로 입력")
+    arguments =vars(ap.parse_args())
+    return arguments
+
+
+term = args()["session"]
+team_no = args()["team"]
+mate_no = args()["member"]
 
 path = './assignments/'
 files = glob.glob(path + "*.xlsx")
 files_peer = [s for s in files if "동료" in s]
 files_team = [s for s in files if "발표" in s]
 
-team_no = input("총 몇 조까지 있나요? (자연수로 입력) : ")
-team_no = int(team_no)
 team_index = string.ascii_letters[team_no]
 team_index = team_index.upper()
 team_range = "B : " + team_index
 
-mate_no = input("한 팀에 최대 몇 명까지 있나요? (자연수로 입력) :  ")
-mate_no = int(mate_no)
 mate_index = string.ascii_letters[mate_no]
 mate_index = mate_index.upper()
 mate_range = "B : " + mate_index
 
 array_team = np.zeros([6,team_no])
 
+print("---------------------------------------------------------------------")
+print("---------------------Team Evaluation Start-----------------------------")
+print("---------------------------------------------------------------------")
+
 ## 발표 평가지 평가
 for file_name in files_team:
     print(file_name)
     df = pd.read_excel(file_name, usecols=team_range, nrows=10, skiprows=5)
-    df = df.iloc[1::2] # 중간에 있는 공백을 제거하기 위해서
+    if term == 'm':
+        df = df.iloc[::2] # 중간에 있는 공백을 제거하기 위해서
+    elif term == 'f':
+        df = df.iloc[1::2] # 중간에 있는 공백을 제거하기 위해서
     df = remove_vulnerabilities(df,"team")
 
     # (확실히 하기 위해) 각 팀별 총점 다시 계산
@@ -67,10 +83,9 @@ cols = list(range(1,team_no + 1))
 for i in range(team_no):
     cols[i] = str(i+1) + " 조"
 result_df.columns = cols
-result_df.to_excel('./evals/TeamScores.xlsx')
 
 print("---------------------------------------------------------------------")
-print("---------------------Team Evaluation Done----------------------------")
+print("---------------------Peer Evaluation Start----------------------------")
 print("---------------------------------------------------------------------")
 
 ## 동료 평가지 평가
@@ -82,7 +97,7 @@ team_dist = np.array(team_dist)
 
 for file_name in files_peer:
     print(file_name)
-    df = pd.read_excel(file_name, usecols=mate_range, nrows=6, skiprows=6, header=None)
+    df = pd.read_excel(file_name, index_col=0, usecols=mate_range, nrows=6, skiprows=6, header=None)
     df = remove_vulnerabilities(df, "individual")
     df = df.to_numpy()
     mates = np.array([r for r in df[:,0] if type(r) == str])
@@ -150,6 +165,9 @@ for file_name in files_peer:
                     team_dist[dup_index][8] += team_score
 
         else: 
+            if name == "이성준":
+                print(team_no)
+                print(mate_no)
             where = int(np.where(team_dist == name_id[0])[0])
             team_num = team_dist[where][0]
             team_dist[where][2:7]  += score_now
@@ -178,10 +196,9 @@ for row in range(team_dist.shape[0]):
 
 peer_result = pd.DataFrame(team_dist)
 peer_result.columns = ['팀 이름', '이름_학번', '아이디어발상', '아이디어평가/선정 및 구체스케치', '프로토타입 제작' , '발표자료 제작 및 발표', '총점', '평가받은 횟수', '팀 점수', '최종 점수']
-peer_result.to_excel('./evals/IndividualScores.xlsx')
 
 print("---------------------------------------------------------------------")
-print("---------------------Peer Evaluation Done----------------------------")
+print("---------------------Final Evaluation Start----------------------------")
 print("---------------------------------------------------------------------")
 
 
@@ -195,18 +212,27 @@ indiv_score = np.array(indiv_score)
 attendance = pd.read_excel(attendance[0], usecols='B')
 FinalScore = pd.concat([attendance, pd.DataFrame(np.zeros([attendance.shape[0],3]))], axis=1)
 FinalScore = np.array(FinalScore)
-print("Before: ",FinalScore)
 
 for std in range(indiv_score.shape[0]):
+    print(indiv_score[std,0])
     where = int(np.where(FinalScore==indiv_score[std,0])[0])
     FinalScore[where] = indiv_score[std]
 
-print("After: ",FinalScore)
-
 final_result = pd.DataFrame(FinalScore)
 final_result.columns = ['이름_학번', '동료 평가 점수', '팀 점수', '최종 점수']
-final_result.to_excel('./evals/FinalScore.xlsx')
+
+## 엑셀 파일로 저장하기
+if term == 'm':
+    result_df.to_excel('./evals/팀별평가_중간.xlsx')
+    peer_result.to_excel('./evals/동료평가_중간.xlsx')
+    final_result.to_excel('./evals/최종평가_중간.xlsx')
+elif term == 'f':
+    result_df.to_excel('./evals/팀별평가_기말.xlsx')
+    peer_result.to_excel('./evals/동료평가_기말.xlsx')
+    final_result.to_excel('./evals/최종평가_기말.xlsx')
+else:
+    print("중간/기말 잘못 입력 하셨습니다. 다시 입력하세요.")
 
 print("---------------------------------------------------------------------")
-print("---------------------Total Score Written-----------------------------")
+print("---------------------Entire Process Finished-------------------------")
 print("---------------------------------------------------------------------")
