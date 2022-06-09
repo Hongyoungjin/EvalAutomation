@@ -34,7 +34,7 @@
 파이썬 코드에서 요구하는 패키지들을 미리 설치합시다.
 
 ``` bash
-git clone https://github.com/Hongyoungjin/EvalAutomation.
+git clone https://github.com/Hongyoungjin/EvalAutomation.git
 pip install .
 ```
 
