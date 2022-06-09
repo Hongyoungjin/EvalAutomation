@@ -45,7 +45,7 @@ mate_range = "B : " + mate_index
 
 array_team = np.zeros([6,team_no])
 
-# 발표 평가지 평가
+## 발표 평가지 평가
 for file_name in files_team:
     print(file_name)
     df = pd.read_excel(file_name, usecols=team_range, nrows=10, skiprows=5)
@@ -74,11 +74,11 @@ print("---------------------------------------------------------------------")
 print("---------------------Team Evaluation Done----------------------------")
 print("---------------------------------------------------------------------")
 
-# 동료 평가지 평가
-file_students = glob.glob('./students/' + "*.xlsx")
-print(file_students)
-team_dist = pd.read_excel(file_students[0], usecols='A:B', header = None, nrows=team_no * mate_no)
-team_dist = pd.concat([team_dist, pd.DataFrame(np.zeros([team_dist.shape[0],6]))], axis=1)
+## 동료 평가지 평가
+file_peer = glob.glob('./teams/' + "*.xlsx")
+print(file_peer)
+team_dist = pd.read_excel(file_peer[0], usecols='A:B', header = None, nrows=team_no * mate_no)
+team_dist = pd.concat([team_dist, pd.DataFrame(np.zeros([team_dist.shape[0],8]))], axis=1)
 team_dist = np.array(team_dist)
 
 for file_name in files_peer:
@@ -93,7 +93,7 @@ for file_name in files_peer:
 
 # 각 사람마다 값 더하기
     row = 0
-    team_num = 0
+    team_num = 0 # 현재 학생이 속한 조 번호
     while row < mate_no_tmp:
         name = df[row, 0]
         print("지금 확인하고 있는 학생 이름:  ",name)
@@ -146,25 +146,39 @@ for file_name in files_peer:
                         print("Duplicate Alert: 같은 조에 동명이인이 있으므로 Assingments 파일에서 해당 파일들을 따로 처리해야 함.")
                         exit()
 
+                    # 학생이 속한 조의 발표점수
+                    team_score = result_np[5 , team_num -1]
+                    team_dist[dup_index][8] += team_score
+
         else: 
             where = int(np.where(team_dist == name_id[0])[0])
             team_num = team_dist[where][0]
             team_dist[where][2:7]  += score_now
             team_dist[where][7]    += 1
+
+            # 학생이 속한 조의 발표점수
+            team_score = result_np[5 , team_num -1]
+            team_dist[where][8]    += team_score
+
         
         row += 1
     print("현재 조 이름: ", team_num)
+
 # 평균내기
 
 for row in range(team_dist.shape[0]):
     try:
-        team_dist[row][2:7] /= team_dist[row][7]
+        team_dist[row][2:7] /= team_dist[row][7] # 평균점수 내기
+        team_dist[row][8  ] /= team_dist[row][7] # 찐 팀별 점수 내기
+        team_dist[row][9  ] = team_dist[row][6] + team_dist[row][8] # 최종 점수 = 개인 총점 + 팀별 점수
+        
+
     except ZeroDivisionError:
         continue
     
 
 peer_result = pd.DataFrame(team_dist)
-peer_result.columns = ['팀 이름', '이름_학번', '아이디어발상', '아이디어평가/선정 및 구체스케치', '프로토타입 제작' , '발표자료 제작 및 발표', '총점', '평가받은 횟수']
+peer_result.columns = ['팀 이름', '이름_학번', '아이디어발상', '아이디어평가/선정 및 구체스케치', '프로토타입 제작' , '발표자료 제작 및 발표', '총점', '평가받은 횟수', '팀 점수', '최종 점수']
 peer_result.to_excel('./evals/IndividualScores.xlsx')
 
 print("---------------------------------------------------------------------")
@@ -172,6 +186,28 @@ print("---------------------Peer Evaluation Done----------------------------")
 print("---------------------------------------------------------------------")
 
 
+## 출석부에 총 점수 계산 (출석부 순서대로)
+
+attendance = glob.glob('./students/' + "*.xlsx")
+indiv_score = peer_result[['이름_학번', '총점', '팀 점수', '최종 점수']]
+indiv_score = np.array(indiv_score)
 
 
+attendance = pd.read_excel(attendance[0], usecols='B')
+FinalScore = pd.concat([attendance, pd.DataFrame(np.zeros([attendance.shape[0],3]))], axis=1)
+FinalScore = np.array(FinalScore)
+print("Before: ",FinalScore)
 
+for std in range(indiv_score.shape[0]):
+    where = int(np.where(FinalScore==indiv_score[std,0])[0])
+    FinalScore[where] = indiv_score[std]
+
+print("After: ",FinalScore)
+
+final_result = pd.DataFrame(FinalScore)
+final_result.columns = ['이름_학번', '동료 평가 점수', '팀 점수', '최종 점수']
+final_result.to_excel('./evals/FinalScore.xlsx')
+
+print("---------------------------------------------------------------------")
+print("---------------------Total Score Written-----------------------------")
+print("---------------------------------------------------------------------")
