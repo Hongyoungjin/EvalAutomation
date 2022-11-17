@@ -1,6 +1,4 @@
 pandas
 numpy
-glob
-string
-random
 argparse
+openpyxl
