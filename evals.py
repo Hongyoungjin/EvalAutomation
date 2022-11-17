@@ -34,7 +34,7 @@ print("---------------------------------------------------------------------")
 ## 발표 평가지 평가
 for file_name in files_team:
     print(file_name)
-    df = pd.read_excel(file_name, usecols=team_range, nrows=10, skiprows=5)
+    df = pd.read_excel(file_name,  engine='openpyxl',usecols=team_range, nrows=10, skiprows=5)
     if term == 'm':
         df = df.iloc[::2] # 중간에 있는 공백을 제거하기 위해서
     elif term == 'f':
@@ -65,13 +65,13 @@ print("---------------------------------------------------------------------")
 ## 동료 평가지 평가
 file_peer = glob.glob('./teams/' + "*.xlsx")
 print(file_peer)
-team_dist = pd.read_excel(file_peer[0], usecols='A:B', header = None, nrows=team_no * mate_no)
+team_dist = pd.read_excel(file_peer[0], engine='openpyxl', usecols='A:B', header = None, nrows=team_no * mate_no)
 team_dist = pd.concat([team_dist, pd.DataFrame(np.zeros([team_dist.shape[0],8]))], axis=1)
 team_dist = np.array(team_dist)
 
 for file_name in files_peer:
     print(file_name)
-    df = pd.read_excel(file_name, usecols=mate_range, nrows=6, skiprows=6, header=None)
+    df = pd.read_excel(file_name, engine='openpyxl', usecols=mate_range, nrows=6, skiprows=6, header=None)
     df = remove_vulnerabilities(df, "individual")
     df = df.to_numpy()
     mates = np.array([r for r in df[:,0] if type(r) == str])
@@ -180,7 +180,7 @@ indiv_score = peer_result[['이름_학번', '총점', '팀 점수', '최종 점�
 indiv_score = np.array(indiv_score)
 
 
-attendance = pd.read_excel(attendance[0], usecols='B')
+attendance = pd.read_excel(attendance[0], engine='openpyxl', usecols='B')
 FinalScore = pd.concat([attendance, pd.DataFrame(np.zeros([attendance.shape[0],3]))], axis=1)
 FinalScore = np.array(FinalScore)
 
